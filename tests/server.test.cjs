@@ -44,6 +44,8 @@ test('server recomputes facts and never forwards client scores or secrets to the
     assert.equal(endpoint, 'https://api.openai.com/v1/responses');
     assert.equal(init.headers.Authorization, 'Bearer test-secret');
     const request = JSON.parse(init.body);
+    assert.match(request.instructions, /Ровно три пункта/);
+    assert.match(request.instructions, /не более 90 слов/);
     const facts = JSON.parse(request.input);
     assert.equal(request.store, false);
     assert.equal(facts.score, 56.5431);
