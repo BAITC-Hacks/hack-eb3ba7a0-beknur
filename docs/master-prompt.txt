@@ -1,0 +1,2109 @@
+# MASTER PROMPT FOR CODEX
+# PROJECT: «АКИМ НА 5 ЧАСОВ»
+# AI SIMULATOR OF CITY MANAGEMENT
+
+Ты — Senior Full-Stack Engineer, Software Architect, Game Developer,
+Backend Engineer и AI Engineer.
+
+Твоя задача — разработать полноценное production-ready веб-приложение
+для хакатона:
+
+«Аким на 5 часов» — AI-симулятор управления городом.
+
+ВАЖНО:
+Это НЕ обычный CRUD-сайт.
+Это полноценная браузерная simulation game с:
+- multiplayer;
+- AI opponent;
+- deterministic scoring engine;
+- AI post-game analysis;
+- leaderboard;
+- admin panel;
+- генерацией отчётов PDF/DOCX/JSON.
+
+Используй два предоставленных документа как главный источник
+предметной логики:
+
+1. HackAlem AI_ «Аким на 5 часов» - AI-симулятор управления городом.pdf
+2. Датасет районов.pdf
+
+Не заменяй данные, формулы, правила или ограничения из этих документов
+собственными значениями.
+
+Если существующий repository уже содержит код:
+СНАЧАЛА изучи его и продолжай существующую архитектуру.
+Не переписывай проект без необходимости.
+
+Если repository пустой:
+создай проект с нуля.
+
+============================================================
+1. CORE CONCEPT
+============================================================
+
+Пользователь становится виртуальным акимом.
+
+Он получает:
+- город;
+- районы;
+- исходные показатели;
+- виртуальный бюджет;
+- каталог мероприятий.
+
+Игрок должен принять РОВНО 5 управленческих решений.
+
+Решения относятся к пяти направлениям:
+
+1. Транспорт
+2. Экология
+3. Социальная сфера
+4. Безопасность
+5. Городские сервисы
+
+После пяти решений backend:
+1. проверяет правила;
+2. рассчитывает изменения показателей;
+3. рассчитывает Astana Quality of Life Score;
+4. сравнивает результат с baseline;
+5. передаёт фактические результаты AI;
+6. AI формирует подробный Post-Game Analysis;
+7. пользователь получает возможность скачать отчёт
+   в PDF, DOCX и JSON.
+
+Главная идея игры:
+
+«У меня есть ограниченный бюджет.
+У меня есть город с проблемами.
+У меня только 5 решений.
+Каждое решение влияет на город.
+Другие игроки получают те же условия.
+После игры AI объясняет, насколько хорошо я управлял городом.»
+
+============================================================
+2. MAIN GAME LOOP
+============================================================
+
+Основной flow:
+
+LANDING PAGE
+↓
+REGISTER / LOGIN
+↓
+DASHBOARD
+↓
+ROOMS
+↓
+CREATE / JOIN ROOM
+↓
+LOBBY
+↓
+SELECT CITY
+↓
+GAME
+↓
+5 DECISIONS
+↓
+BACKEND VALIDATION
+↓
+SCORING ENGINE
+↓
+FINAL SCORE
+↓
+AI POST-GAME ANALYSIS
+↓
+RESULT SCREEN
+↓
+AI SUMMARY
+↓
+DOWNLOAD PDF / DOCX / JSON
+↓
+GAME HISTORY
+↓
+LEADERBOARD
+
+Это основной пользовательский сценарий.
+
+============================================================
+3. USER ROLES
+============================================================
+
+Есть две роли:
+
+USER
+ADMIN
+
+------------------------------------------------------------
+USER
+------------------------------------------------------------
+
+Пользователь может:
+
+- register;
+- login;
+- logout;
+- edit profile;
+- change password;
+- create room;
+- join room;
+- participate in multiplayer;
+- play against AI;
+- play local multiplayer;
+- select city;
+- make exactly 5 decisions;
+- see budget;
+- see districts;
+- see indicators;
+- see consequences;
+- finish game;
+- receive Score;
+- receive AI analysis;
+- download PDF;
+- download DOCX;
+- download JSON;
+- view game history;
+- view leaderboard.
+
+------------------------------------------------------------
+ADMIN
+------------------------------------------------------------
+
+Администратор может:
+
+- access admin panel;
+- create city templates;
+- edit city templates;
+- archive/delete city templates;
+- create/edit districts;
+- create/edit measures;
+- view users;
+- view games;
+- view results;
+- view statistics;
+- view rooms;
+- download game reports.
+
+Обычный USER не должен иметь доступа к admin endpoints.
+
+============================================================
+4. AUTHENTICATION
+============================================================
+
+Implement:
+
+- registration;
+- login;
+- logout;
+- secure password hashing;
+- JWT or secure session authentication;
+- role-based access control;
+- protected routes.
+
+Registration creates USER.
+
+ADMIN cannot be created through public registration.
+
+Admin role must be stored server-side.
+
+Never trust role information coming from frontend.
+
+============================================================
+5. MAIN NAVIGATION
+============================================================
+
+Public navigation:
+
+- Главная
+- Войти
+- Регистрация
+
+After login:
+
+- Главная
+- Рейтинг
+- Комнаты
+- Профиль
+- История игр
+
+Admin:
+
+- Dashboard
+- City Templates
+- Districts
+- Measures
+- Users
+- Rooms
+- Games
+- Statistics
+
+============================================================
+6. LANDING PAGE
+============================================================
+
+Title:
+
+«Аким на 5 часов»
+
+Subtitle:
+
+«AI-симулятор управления городом»
+
+Show:
+
+- what the game is;
+- how gameplay works;
+- 5 directions;
+- limited budget;
+- multiplayer;
+- AI opponent;
+- AI analysis.
+
+CTA:
+
+[ НАЧАТЬ ИГРУ ]
+
+Unauthenticated user:
+→ LOGIN / REGISTER
+
+Authenticated user:
+→ ROOMS
+
+Design:
+modern civic-tech / futuristic city management.
+
+Do NOT make it look like a boring enterprise dashboard.
+
+============================================================
+7. ROOMS
+============================================================
+
+Main page:
+
+КОМНАТЫ
+
+Buttons:
+
+[ СОЗДАТЬ КОМНАТУ ]
+[ ПРИСОЕДИНИТЬСЯ ]
+
+Show available rooms.
+
+Room card:
+
+- room code;
+- room name;
+- host;
+- city;
+- players;
+- max players;
+- mode;
+- status;
+- creation date.
+
+Example:
+
+ROOM #A82F1
+
+Astana Challenge
+
+5 / 8 players
+
+WAITING
+
+[ JOIN ]
+
+============================================================
+8. MULTIPLAYER
+============================================================
+
+Maximum:
+
+8 players per room.
+
+IMPORTANT:
+
+Each player is an independent mayor.
+
+Players DO NOT jointly control one city.
+
+All players in the same competitive room receive:
+
+- identical city;
+- identical initial data;
+- identical budget;
+- identical measures;
+- identical rules.
+
+Each player independently makes exactly 5 decisions.
+
+Example:
+
+Player A → Score 68.7
+Player B → Score 64.2
+Player C → Score 61.8
+
+Rank players after completion.
+
+Winner:
+highest valid final Score.
+
+Do not reveal another player's decisions
+before the game has ended.
+
+============================================================
+9. LOBBY
+============================================================
+
+Lobby must show:
+
+ROOM CODE
+CITY
+MODE
+PLAYERS
+
+Example:
+
+Player 1 — READY
+Player 2 — READY
+Player 3 — NOT READY
+
+Host:
+
+[ START GAME ]
+
+Players:
+
+[ READY ]
+
+Host can start the game.
+
+Maximum 8 players.
+
+============================================================
+10. CREATE ROOM
+============================================================
+
+When creating room, host selects city source.
+
+Options:
+
+A. CITY TEMPLATE
+B. MANUAL CITY
+C. AI GENERATED CITY
+
+------------------------------------------------------------
+A. CITY TEMPLATE
+------------------------------------------------------------
+
+Show templates created by ADMIN.
+
+------------------------------------------------------------
+B. MANUAL CITY
+------------------------------------------------------------
+
+Allow user to configure city.
+
+Backend MUST validate values.
+
+------------------------------------------------------------
+C. AI GENERATED CITY
+------------------------------------------------------------
+
+AI can generate a new city.
+
+IMPORTANT:
+
+Once generated, the city state is frozen for the room.
+
+All players receive exactly the same generated city.
+
+AI cannot secretly modify initial state.
+
+============================================================
+11. AI GENERATED CITY
+============================================================
+
+AI-generated city must eventually conform to the same game model:
+
+- districts;
+- population shares;
+- indicators;
+- measures;
+- valid numeric ranges.
+
+All generated values must be validated server-side.
+
+Use the same scoring engine.
+
+AI-generated content must NOT bypass game rules.
+
+============================================================
+12. LOCAL MULTIPLAYER
+============================================================
+
+Implement a Local Multiplayer mode.
+
+Several players can play on one computer.
+
+Example:
+
+PLAYER 1
+→ makes decisions
+→ submits
+
+Then hide Player 1 decisions.
+
+PLAYER 2
+→ makes decisions
+→ submits
+
+etc.
+
+At the end:
+
+show leaderboard.
+
+Players must not see other players'
+decisions before the game is completed.
+
+============================================================
+13. PLAY VS AI
+============================================================
+
+Implement:
+
+PLAY VS AI
+
+Possible modes:
+
+Human vs AI
+
+or
+
+Human + AI opponents.
+
+AI receives:
+
+- same city;
+- same budget;
+- same measures;
+- same rules;
+- same number of decisions.
+
+AI opponent must not receive hidden advantages.
+
+For MVP, a deterministic rule-based strategy bot is acceptable.
+
+However, architecture must allow a future LLM-based AI agent.
+
+============================================================
+14. BUDGET
+============================================================
+
+Initial budget:
+
+100 conditional units.
+
+Every player starts with:
+
+100 / 100
+
+Budget cannot be exceeded.
+
+Unused budget:
+does not disappear and gives no bonus.
+
+All budget validation happens server-side.
+
+Example:
+
+Initial = 100
+Spent = 50
+Remaining = 50
+
+============================================================
+15. EXACTLY FIVE DECISIONS
+============================================================
+
+The player MUST make exactly:
+
+5 decisions.
+
+Not:
+- up to 5;
+- 4;
+- 6.
+
+Exactly 5.
+
+Frontend must show:
+
+Decisions: 0/5
+1/5
+2/5
+...
+5/5
+
+Game cannot finish before exactly 5 valid decisions.
+
+============================================================
+16. FIVE DIRECTIONS
+============================================================
+
+Use exactly:
+
+1. Транспорт
+2. Экология
+3. Социальная сфера
+4. Безопасность
+5. Городские сервисы
+
+============================================================
+17. DISTRICT DATA
+============================================================
+
+Use the district data from:
+
+«Датасет районов.pdf»
+
+Scale:
+
+0–100
+
+Higher is better.
+
+Districts:
+
+- Есиль
+- Алматы
+- Сарыарка
+- Байконур
+- Нура
+
+Indicators:
+
+T1 — Разгрузка дорог
+T2 — Доступность общественного транспорта
+
+E1 — Озеленение
+E2 — Качество воздуха
+
+S1 — Школы и детсады
+S2 — Поликлиники и первичная медпомощь
+
+B1 — Безопасность улиц
+B2 — Безопасность дорожного движения
+
+C1 — Надёжность ЖКХ
+C2 — Скорость решения обращений жителей
+
+Use the exact source values from the provided dataset.
+
+Do not replace them with invented values.
+
+============================================================
+18. MEASURES
+============================================================
+
+Implement all 14 measures from the dataset:
+
+M1 — Выделенные полосы для автобусов
+M2 — Умные светофоры (адаптивное управление)
+M3 — Линия ЛРТ / расширение
+M4 — Парк / сквер
+M5 — Перевод частного сектора на чистое топливо
+M6 — Городская программа озеленения и ветрозащитных полос
+M7 — Школа + детсад (модульное строительство)
+M8 — Центр семейного здоровья / поликлиника
+M9 — Дворовые спорт-хабы
+M10 — Освещение и камеры (расширение Safe City)
+M11 — Безопасные переходы и школьные зоны
+M12 — Единая цифровая платформа обращений
+M13 — Модернизация тепло- и водосетей
+M14 — Аварийные бригады ЖКХ + раннее оповещение
+
+Use exact:
+- costs;
+- lag;
+- type;
+- effects;
+- direction;
+- district/city behavior
+
+from the dataset.
+
+============================================================
+19. SIMULATION HORIZON
+============================================================
+
+Simulation horizon:
+
+H = 8 quarters.
+
+Equivalent to:
+
+2 conditional years.
+
+For each measure:
+
+L = lag.
+
+Realized effect:
+
+(8 - L) / 8
+
+Use the exact formula.
+
+============================================================
+20. MEASURE TYPES
+============================================================
+
+Two types:
+
+Район
+Город
+
+If measure type = Район:
+district selection is REQUIRED.
+
+If measure type = Город:
+district selection is NOT allowed.
+
+City measures apply to all five districts.
+
+============================================================
+21. SYNERGIES
+============================================================
+
+Implement exact synergies:
+
+M1 + M2
+→ T1 +2 in district of M1
+
+M10 + M12
+→ B1 +2 in district of M10
+
+M5 + M6
+→ E2 +2 in district of M5
+
+Synergies:
+- activate automatically;
+- are deterministic;
+- are included in scoring;
+- are shown in results.
+
+============================================================
+22. INCOMPATIBILITIES
+============================================================
+
+Implement:
+
+M1 + M3
+→ incompatible
+
+M4 + M7 in same district
+→ incompatible
+
+M5 + M13 in same district
+→ incompatible
+
+Return a human-readable error.
+
+Example:
+
+"M1 and M3 are incompatible."
+
+============================================================
+23. GAME RULE VALIDATOR
+============================================================
+
+Backend validator MUST enforce:
+
+1. Budget <= 100
+2. Exactly 5 decisions
+3. No duplicate measures
+4. District required for district measures
+5. District forbidden for city measures
+6. Maximum 2 measures from one direction
+7. At least 3 directions must be affected
+8. Incompatible combinations forbidden
+9. Order of decisions has no effect
+
+Invalid game state:
+
+Score must NOT be calculated.
+
+Return validation reason.
+
+============================================================
+24. SCORING ENGINE
+============================================================
+
+The scoring engine is deterministic.
+
+AI MUST NOT calculate Score.
+
+For every district d and indicator k:
+
+I'_dk =
+clip(
+I_dk
++
+Σ(effect_m,k × (8-L_m)/8)
++
+synergy
+,
+0,
+100
+)
+
+District score:
+
+D_d = Σ(w_k × I'_dk)
+
+Weights:
+
+T1 0.10
+T2 0.10
+E1 0.09
+E2 0.11
+S1 0.11
+S2 0.11
+B1 0.09
+B2 0.09
+C1 0.10
+C2 0.10
+
+Total:
+
+1.00
+
+Population-weighted city score:
+
+D_avg = Σ(pop_d × D_d)
+
+Final:
+
+Score =
+0.7 × D_avg
++
+0.3 × min(D_d)
+-
+1.0 × N_crit
+
+N_crit:
+number of district × indicator pairs
+with final value strictly below 40.
+
+Baseline Score:
+
+52.56
+
+Use the exact formula from the dataset.
+
+============================================================
+25. SCORING TESTS
+============================================================
+
+Create unit tests.
+
+Test:
+
+- baseline;
+- budget;
+- exactly 5;
+- duplicates;
+- max 2 per direction;
+- minimum 3 directions;
+- incompatibilities;
+- district requirements;
+- city requirements;
+- lag;
+- clipping;
+- synergies;
+- critical penalties.
+
+Also test dataset example:
+
+M7 — Нура
+M8 — Нура
+M10 — Нура
+M12 — город
+M5 — Сарыарка
+
+Cost:
+
+95
+
+Expected Score:
+
+approximately 56.5
+
+If implementation differs:
+debug formula/data instead of changing expected values blindly.
+
+============================================================
+26. GAME SCREEN
+============================================================
+
+The game screen is the most important UI.
+
+Show:
+
+CITY
+TURN
+BUDGET
+REMAINING BUDGET
+DECISIONS 0/5
+
+District cards:
+
+Есиль
+Алматы
+Сарыарка
+Байконур
+Нура
+
+Indicators.
+
+Direction cards:
+
+🚍 Транспорт
+🌳 Экология
+🏫 Социальная сфера
+🛡 Безопасность
+🏢 Сервисы
+
+Measure cards:
+
+- name;
+- cost;
+- type;
+- lag;
+- effects;
+- affected indicators.
+
+Allow district selection when required.
+
+Show selected decisions.
+
+============================================================
+27. DECISION UX
+============================================================
+
+When user selects a measure:
+
+Show:
+
+Measure
+Cost
+Direction
+District
+Expected effects
+Remaining budget
+
+Before confirmation:
+
+validate:
+- budget;
+- duplicate;
+- incompatibilities;
+- direction limit;
+- district requirement.
+
+Do not modify persistent game state until
+decision is successfully validated.
+
+============================================================
+28. CONSEQUENCES
+============================================================
+
+The game can show estimated consequences of a decision.
+
+However:
+
+FINAL SCORE is calculated only after all five decisions.
+
+Backend is authoritative.
+
+============================================================
+29. GAME EVENTS
+============================================================
+
+Prepare architecture for optional events.
+
+Possible future events:
+
+- heating failure;
+- pollution increase;
+- transport crisis;
+- emergency;
+- citizen complaint spike.
+
+Events may require budget redistribution.
+
+BUT:
+
+Do not break the core scoring rules.
+
+Implement events as optional/feature-flag functionality.
+
+Core game must remain deterministic.
+
+============================================================
+30. REALTIME MULTIPLAYER
+============================================================
+
+Use WebSocket.
+
+Events:
+
+ROOM_PLAYER_JOINED
+ROOM_PLAYER_LEFT
+PLAYER_READY
+GAME_STARTED
+PLAYER_DECISION_SUBMITTED
+PLAYER_FINISHED
+GAME_FINISHED
+RESULTS_READY
+
+Optional:
+
+ROOM_UPDATED
+TIMER_UPDATED
+
+============================================================
+31. GAME STATE
+============================================================
+
+Game state must be stored server-side.
+
+Never trust frontend for:
+
+- budget;
+- score;
+- selected decisions;
+- role;
+- winner;
+- final results.
+
+Frontend is presentation layer.
+
+============================================================
+32. POST-GAME AI ANALYSIS — MANDATORY
+============================================================
+
+THIS IS A CORE FEATURE.
+
+A game is NOT considered fully completed from
+the user's perspective until AI analysis is generated.
+
+After the final 5 decisions:
+
+1. Validate game.
+2. Calculate deterministic Score.
+3. Calculate district deltas.
+4. Calculate measure contributions.
+5. Calculate synergies.
+6. Detect critical indicators.
+7. Generate AI analysis.
+
+AI MUST explain:
+
+- what the player did right;
+- what the player did wrong;
+- what could be improved;
+- trade-offs;
+- risks;
+- district performance;
+- recommendations;
+- final summary.
+
+============================================================
+33. "WHAT DID YOU DO RIGHT"
+============================================================
+
+AI must identify successful decisions.
+
+Example:
+
+"Выбор M10 улучшил безопасность Нуры."
+
+"Комбинация M10 + M12 активировала синергию."
+
+"Распределение бюджета позволило улучшить
+минимальный районный показатель."
+
+Every statement must be grounded in actual game data.
+
+============================================================
+34. "WHAT DID YOU DO WRONG"
+============================================================
+
+AI MUST analyze weaknesses.
+
+Possible examples:
+
+- weak district remained;
+- critical indicator remained;
+- poor resource allocation;
+- missed synergy;
+- alternative measure could have produced stronger effect;
+- budget was inefficiently allocated.
+
+Do NOT invent mistakes.
+
+If there are no obvious mistakes:
+
+"Критических ошибок в стратегии не обнаружено."
+
+But AI can still provide improvement opportunities.
+
+============================================================
+35. TRADE-OFF ANALYSIS
+============================================================
+
+AI must explain trade-offs.
+
+Example:
+
+"You significantly improved security in Nura,
+but allocating budget there left less budget
+for ecological improvements in Saryarka."
+
+============================================================
+36. DISTRICT ANALYSIS
+============================================================
+
+Analyze all districts:
+
+Есиль
+Алматы
+Сарыарка
+Байконур
+Нура
+
+For each:
+
+Before
+After
+Delta
+AI explanation
+
+============================================================
+37. RISK ANALYSIS
+============================================================
+
+AI identifies:
+
+- weak indicators;
+- weak districts;
+- critical values;
+- remaining problems;
+- possible consequences.
+
+============================================================
+38. RECOMMENDATIONS
+============================================================
+
+AI should explain:
+
+"What could have been done better?"
+
+Recommendations must respect:
+
+- budget;
+- selected measures;
+- available measures;
+- incompatibilities;
+- direction limits;
+- district requirements.
+
+AI must never recommend an impossible combination.
+
+============================================================
+39. AI DATA CONTRACT
+============================================================
+
+LLM receives ONLY deterministic results.
+
+Example:
+
+{
+  "game_id": "...",
+  "city": "...",
+  "mode": "...",
+  "baseline_score": 52.56,
+  "final_score": 61.7,
+  "score_delta": 9.14,
+  "rank": 2,
+  "players_count": 8,
+
+  "budget": {
+    "initial": 100,
+    "spent": 95,
+    "remaining": 5
+  },
+
+  "selected_measures": [],
+
+  "districts": {},
+
+  "measure_contributions": [],
+
+  "synergies": [],
+
+  "critical_indicators": [],
+
+  "validation": {
+    "valid": true,
+    "violations": []
+  }
+}
+
+AI is forbidden from:
+- calculating Score;
+- inventing numbers;
+- changing game state;
+- inventing measure effects;
+- inventing costs;
+- inventing districts;
+- inventing outcomes.
+
+============================================================
+40. AI RESPONSE JSON
+============================================================
+
+AI should return:
+
+{
+  "summary": "...",
+
+  "what_you_did_right": [
+    "..."
+  ],
+
+  "what_you_did_wrong": [
+    "..."
+  ],
+
+  "tradeoffs": [
+    "..."
+  ],
+
+  "district_analysis": [
+    {
+      "district": "Нура",
+      "analysis": "..."
+    }
+  ],
+
+  "risks": [
+    "..."
+  ],
+
+  "recommendations": [
+    "..."
+  ],
+
+  "final_conclusion": "..."
+}
+
+Validate this response against a schema.
+
+============================================================
+41. RESULT SCREEN
+============================================================
+
+After the game:
+
+BIG SCORE
+
+Astana Quality of Life Score
+
+Example:
+
+61.7
+
+Show:
+
+Baseline:
+52.56
+
+Improvement:
++9.14
+
+Budget:
+95 / 100
+
+Rank:
+2 / 8
+
+Then:
+
+--------------------------------
+🤖 AI ANALYSIS
+--------------------------------
+
+SUMMARY
+
+--------------------------------
+✅ ЧТО ВЫ СДЕЛАЛИ ПРАВИЛЬНО
+--------------------------------
+
+...
+
+--------------------------------
+❌ ЧТО ВЫ СДЕЛАЛИ НЕ ТАК
+--------------------------------
+
+...
+
+--------------------------------
+⚖️ КОМПРОМИССЫ
+--------------------------------
+
+...
+
+--------------------------------
+⚠️ РИСКИ
+--------------------------------
+
+...
+
+--------------------------------
+💡 РЕКОМЕНДАЦИИ
+--------------------------------
+
+...
+
+--------------------------------
+🏙️ АНАЛИЗ РАЙОНОВ
+--------------------------------
+
+...
+
+============================================================
+42. DOWNLOADABLE POST-GAME REPORT
+============================================================
+
+The user MUST be able to download the completed
+AI analysis.
+
+Buttons:
+
+[ 📄 DOWNLOAD PDF ]
+[ 📝 DOWNLOAD WORD ]
+[ {} DOWNLOAD JSON ]
+
+Optional:
+
+[ 📊 DOWNLOAD CSV ]
+
+Downloads must contain the actual completed game,
+not a generic template.
+
+============================================================
+43. PDF REPORT
+============================================================
+
+Generate a professional PDF:
+
+Title:
+
+"Аким на 5 часов
+AI Post-Game Report"
+
+Sections:
+
+1. Title
+2. Game Overview
+3. Player Information
+4. Final Score
+5. Baseline Score
+6. Score Difference
+7. Budget
+8. Selected 5 Decisions
+9. Measure Contributions
+10. District Before/After
+11. Indicator Changes
+12. Synergies
+13. What You Did Right
+14. What You Did Wrong
+15. Trade-offs
+16. Risks
+17. Recommendations
+18. AI Final Summary
+
+Include:
+
+- tables;
+- charts;
+- before/after;
+- score;
+- district comparison;
+- readable formatting.
+
+Do NOT simply print the webpage.
+
+Generate a real PDF file.
+
+============================================================
+44. WORD REPORT
+============================================================
+
+Generate a real DOCX.
+
+Sections:
+
+- title;
+- game info;
+- player;
+- score;
+- budget;
+- decisions;
+- district analysis;
+- what was done right;
+- what was done wrong;
+- trade-offs;
+- risks;
+- recommendations;
+- final AI summary.
+
+Must open correctly in Microsoft Word.
+
+============================================================
+45. JSON EXPORT
+============================================================
+
+Provide complete structured JSON:
+
+{
+  "game": {},
+  "player": {},
+  "score": {},
+  "budget": {},
+  "decisions": [],
+  "districts": {},
+  "synergies": [],
+  "ai_analysis": {
+    "summary": "",
+    "what_you_did_right": [],
+    "what_you_did_wrong": [],
+    "tradeoffs": [],
+    "risks": [],
+    "recommendations": []
+  }
+}
+
+============================================================
+46. REPORT STORAGE
+============================================================
+
+After game completion:
+
+1. Save GameResult.
+2. Save AIAnalysis.
+3. Save selected decisions.
+4. Save score breakdown.
+5. Save district changes.
+6. Save report metadata.
+
+User can return later through:
+
+Profile
+→ Game History
+→ Game
+→ View Result
+→ Download PDF/DOCX/JSON
+
+Do NOT require AI to regenerate the analysis
+just to download an existing report.
+
+============================================================
+47. GAME HISTORY
+============================================================
+
+Each game:
+
+Date
+City
+Mode
+Players
+Score
+Rank
+
+Actions:
+
+[ VIEW ]
+[ PDF ]
+[ WORD ]
+[ JSON ]
+
+============================================================
+48. LEADERBOARD
+============================================================
+
+Global leaderboard.
+
+Primary metric:
+
+Wins.
+
+Also show:
+
+- games played;
+- wins;
+- win rate;
+- average Score;
+- best Score.
+
+Main leaderboard:
+
+Rank
+Username
+Wins
+Games
+Average Score
+Best Score
+
+============================================================
+49. PROFILE
+============================================================
+
+Show:
+
+- username;
+- email;
+- avatar;
+- games;
+- wins;
+- best Score;
+- average Score.
+
+Actions:
+
+Edit profile
+Change password
+Logout
+
+============================================================
+50. ADMIN PANEL
+============================================================
+
+Admin dashboard:
+
+Total users
+Total games
+Active rooms
+Average Score
+Average players/game
+
+City Templates:
+
+Create
+Edit
+Archive
+Delete
+
+District management.
+
+Measure management.
+
+Users.
+
+Games.
+
+Results.
+
+Statistics.
+
+Reports.
+
+============================================================
+51. ADMIN CITY BUILDER
+============================================================
+
+Admin can create:
+
+City
+
+Description
+
+Districts
+
+Population share
+
+Indicators:
+
+T1
+T2
+E1
+E2
+S1
+S2
+B1
+B2
+C1
+C2
+
+Validation:
+
+- all indicators 0–100;
+- population shares sum to 1;
+- valid city;
+- valid measures.
+
+============================================================
+52. DATABASE
+============================================================
+
+Use PostgreSQL.
+
+Suggested models:
+
+User
+CityTemplate
+District
+Measure
+Room
+RoomPlayer
+Game
+GamePlayer
+Decision
+GameResult
+ScoreBreakdown
+AIAnalysis
+Report
+
+Normalize where appropriate.
+
+============================================================
+53. API
+============================================================
+
+Implement endpoints approximately:
+
+AUTH:
+
+POST /auth/register
+POST /auth/login
+POST /auth/logout
+GET /auth/me
+
+CITIES:
+
+GET /cities
+GET /cities/{id}
+
+ROOMS:
+
+GET /rooms
+POST /rooms
+GET /rooms/{id}
+POST /rooms/{id}/join
+POST /rooms/{id}/leave
+POST /rooms/{id}/ready
+POST /rooms/{id}/start
+
+GAME:
+
+GET /games/{id}
+POST /games/{id}/decisions
+POST /games/{id}/finish
+GET /games/{id}/results
+
+AI:
+
+GET /games/{id}/ai-analysis
+
+REPORT:
+
+GET /games/{id}/report/pdf
+GET /games/{id}/report/docx
+GET /games/{id}/report/json
+
+PROFILE:
+
+GET /profile
+PATCH /profile
+POST /profile/change-password
+
+LEADERBOARD:
+
+GET /leaderboard
+
+ADMIN:
+
+GET /admin/users
+GET /admin/games
+GET /admin/rooms
+GET /admin/results
+
+POST /admin/cities
+PATCH /admin/cities/{id}
+DELETE /admin/cities/{id}
+
+POST /admin/measures
+PATCH /admin/measures/{id}
+DELETE /admin/measures/{id}
+
+============================================================
+54. SECURITY
+============================================================
+
+Implement:
+
+- secure password hashing;
+- authentication;
+- RBAC;
+- server-side validation;
+- rate limiting;
+- SQL injection protection;
+- XSS protection;
+- CSRF protection where applicable;
+- CORS;
+- environment variables;
+- secure secrets;
+- protected admin endpoints.
+
+Never trust frontend:
+
+- role;
+- budget;
+- score;
+- selected decisions;
+- winner.
+
+============================================================
+55. TECH STACK
+============================================================
+
+If repository already has a stack:
+use existing stack unless there is a strong reason not to.
+
+If creating from scratch:
+
+Frontend:
+- Next.js
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+
+Backend:
+- FastAPI
+- Python
+- Pydantic
+- SQLAlchemy
+
+Database:
+- PostgreSQL
+
+Realtime:
+- WebSocket
+
+AI:
+- OpenAI API through backend
+
+Charts:
+- Recharts
+
+Infrastructure:
+- Docker
+- docker-compose
+
+PDF:
+Use a reliable server-side PDF generation library.
+
+DOCX:
+Use a real DOCX generation library.
+
+============================================================
+56. PROJECT ARCHITECTURE
+============================================================
+
+Recommended:
+
+frontend/
+
+backend/
+  app/
+    api/
+    auth/
+    models/
+    schemas/
+    services/
+    game/
+    scoring/
+    ai/
+    reports/
+    websocket/
+    admin/
+
+tests/
+
+docker-compose.yml
+README.md
+.env.example
+
+Separate:
+
+Game Engine
+Scoring Engine
+AI Service
+Report Service
+
+============================================================
+57. TESTING
+============================================================
+
+Implement:
+
+Unit tests
+Integration tests
+API tests
+Game tests
+Scoring tests
+AI schema tests
+Report generation tests
+
+Test:
+
+- registration;
+- login;
+- RBAC;
+- create room;
+- join room;
+- max 8 players;
+- budget;
+- exactly 5;
+- duplicate;
+- direction limit;
+- minimum 3 directions;
+- incompatibility;
+- district validation;
+- city validation;
+- synergy;
+- lag;
+- Score;
+- game completion;
+- AI analysis;
+- PDF generation;
+- DOCX generation;
+- JSON generation;
+- leaderboard.
+
+============================================================
+58. SEED DATA
+============================================================
+
+Create seed script from provided dataset.
+
+Seed:
+
+- 5 districts;
+- 14 measures;
+- all exact costs;
+- all exact lags;
+- all exact effects;
+- synergies;
+- incompatibilities;
+- population shares;
+- indicators.
+
+Do NOT invent replacement values.
+
+Create admin through environment variables or
+a secure seed process.
+
+Never hardcode a production password.
+
+============================================================
+59. README
+============================================================
+
+README must explain:
+
+1. Project
+2. Problem
+3. Features
+4. Gameplay
+5. Multiplayer
+6. AI
+7. Scoring
+8. Architecture
+9. Database
+10. API
+11. Installation
+12. Environment variables
+13. Docker
+14. Seed
+15. Tests
+16. Report generation
+17. Demo
+18. Future improvements
+
+============================================================
+60. UX QUALITY
+============================================================
+
+The interface must feel like a real game.
+
+Use:
+
+- animated Score;
+- budget meter;
+- decision cards;
+- district cards;
+- charts;
+- before/after visualization;
+- responsive design;
+- loading states;
+- error states;
+- success states;
+- WebSocket status;
+- clear CTAs.
+
+Do NOT create an ugly raw admin-style interface.
+
+============================================================
+61. PERFORMANCE
+============================================================
+
+Avoid unnecessary database queries.
+
+Use:
+
+- indexes;
+- pagination;
+- caching where appropriate;
+- efficient WebSocket handling;
+- background task for AI analysis if necessary.
+
+AI analysis should not block the entire server.
+
+============================================================
+62. IMPORTANT AI ARCHITECTURE
+============================================================
+
+Use two separate concepts:
+
+A. AI OPPONENT
+B. AI POST-GAME ANALYST
+
+AI Opponent:
+plays the game.
+
+AI Analyst:
+analyzes completed game.
+
+They must be separate services/interfaces.
+
+============================================================
+63. REPORT GENERATION ARCHITECTURE
+============================================================
+
+Separate:
+
+Scoring Engine
+↓
+GameResult
+↓
+AI Analysis
+↓
+Report Data
+↓
+PDF Generator
+↓
+DOCX Generator
+↓
+JSON Export
+
+Do not make PDF generator independently calculate anything.
+
+Reports use saved GameResult + AIAnalysis.
+
+============================================================
+64. ACCEPTANCE CRITERIA
+============================================================
+
+The system is considered complete only if this works:
+
+1. User A registers.
+2. User B registers.
+3. User A creates room.
+4. User B joins.
+5. Both receive identical city.
+6. Both receive budget 100.
+7. Host starts game.
+8. Both make exactly 5 decisions.
+9. Backend validates decisions.
+10. Scoring engine calculates Score.
+11. AI analyzes the results.
+12. AI explains what was done right.
+13. AI explains what was done wrong.
+14. AI explains trade-offs.
+15. AI explains risks.
+16. AI gives recommendations.
+17. Result screen displays Score.
+18. Result screen displays AI analysis.
+19. User can download PDF.
+20. User can download DOCX.
+21. User can download JSON.
+22. Game appears in Game History.
+23. Leaderboard updates.
+24. Winner gets a win.
+25. Admin can inspect the game.
+
+Also:
+
+USER vs AI must work.
+
+LOCAL MULTIPLAYER must work.
+
+============================================================
+65. CRITICAL RULE
+============================================================
+
+Do NOT build a fake demo.
+
+Do NOT create buttons that do nothing.
+
+Do NOT hardcode final Score.
+
+Do NOT hardcode AI analysis.
+
+Do NOT calculate Score in frontend.
+
+Do NOT allow invalid game states.
+
+Do NOT make LLM invent numerical data.
+
+Do NOT replace dataset values with invented values.
+
+The complete chain must be real:
+
+USER
+→ ROOM
+→ LOBBY
+→ GAME
+→ 5 DECISIONS
+→ VALIDATION
+→ SCORING ENGINE
+→ SCORE
+→ AI ANALYSIS
+→ POST-GAME REPORT
+→ PDF/DOCX/JSON
+→ HISTORY
+→ LEADERBOARD
+
+============================================================
+66. DEVELOPMENT PROCESS
+============================================================
+
+Before coding:
+
+1. Inspect repository.
+2. Identify current architecture.
+3. Identify existing dependencies.
+4. Identify existing pages/components.
+5. Identify existing backend endpoints.
+6. Identify database structure.
+7. Create implementation plan.
+
+Then implement in phases:
+
+PHASE 1
+Project architecture + database + authentication.
+
+PHASE 2
+City/district/measure data + seed.
+
+PHASE 3
+Game engine + validation.
+
+PHASE 4
+Scoring engine + tests.
+
+PHASE 5
+Rooms + lobby + multiplayer.
+
+PHASE 6
+Game UI.
+
+PHASE 7
+AI opponent.
+
+PHASE 8
+AI post-game analysis.
+
+PHASE 9
+PDF/DOCX/JSON reports.
+
+PHASE 10
+Leaderboard + history.
+
+PHASE 11
+Admin panel.
+
+PHASE 12
+Testing + security + polish.
+
+Do not stop at pseudocode.
+
+Implement actual working code.
+
+============================================================
+67. FINAL PRODUCT VISION
+============================================================
+
+The final product should feel like:
+
+A city-management strategy game
++
+AI simulation
++
+multiplayer competition
++
+data-driven scoring
++
+AI coach/analyst.
+
+The player should finish a game and feel:
+
+"I made five decisions,
+I changed the city,
+my strategy was evaluated,
+I can see exactly what I did well,
+what I did poorly,
+what trade-offs I made,
+what I could have done differently,
+and I can download a professional report."
+
+This POST-GAME AI ANALYSIS + DOWNLOADABLE REPORT
+is a CORE FEATURE, not an optional feature.
+
+============================================================
+START
+============================================================
+
+First inspect the repository and existing files.
+
+Then provide:
+
+1. Current repository analysis
+2. Proposed architecture
+3. Database schema
+4. Implementation plan
+5. Risks / missing information
+
+Then begin implementation.
+
+Do not ask unnecessary questions if the information
+already exists in the provided documents.
+
+When something is genuinely unspecified by the documents,
+choose a reasonable implementation that does not
+contradict the documented requirements.
+
+At the end, verify the complete user flow manually
+and with automated tests.

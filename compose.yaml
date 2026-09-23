@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: akim
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: akim
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U akim -d akim"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  app:
+    build: .
+    profiles: [full]
+    environment:
+      DATABASE_URL: postgres://akim:${POSTGRES_PASSWORD}@db:5432/akim?sslmode=disable
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+      HOST: 0.0.0.0
+      PORT: 3000
+    ports: ["127.0.0.1:3000:3000"]
+    volumes: ["app_data:/app/.local"]
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  postgres_data:
+  app_data:
