@@ -38,6 +38,8 @@ docker compose --profile full up --build -d
 
 ## Настройки и администратор
 
+Инструкция публикации на сервере: [Деплой на VPS](#деплой-на-vps-linux--docker-compose--https).
+
 - `DATABASE_URL`: PostgreSQL; локальная БД доступна на `127.0.0.1:54329`.
 - `POSTGRES_PASSWORD`: пароль пользователя БД для Compose. Для примера URL удобно использовать случайные буквы и цифры.
 - `OPENAI_API_KEY`, `OPENAI_MODEL`: только сервер. Доступность модели зависит от аккаунта.
@@ -47,6 +49,124 @@ docker compose --profile full up --build -d
 - `PUBLIC_ORIGIN`: точный HTTPS origin за reverse proxy.
 
 `.env`, `.local`, база, логи и ключи игнорируются Git. Пароли пользователей хешируются PBKDF2-SHA256. Сессии сохраняются на сервере, cookie — HttpOnly и SameSite=Strict. Для публичного развёртывания необходим HTTPS.
+
+## Деплой на VPS: Linux + Docker Compose + HTTPS
+
+Приложению нужны постоянно работающие Go-сервер и PostgreSQL. Публикация только папки `dist` на GitHub Pages не запустит игру: авторизация, расчёты, комнаты и отчёты работают через backend.
+
+### 1. Подготовьте сервер и домен
+
+На Linux-сервере установите Git, Docker Engine с Compose plugin и Caddy. Инструкции: [Docker Engine](https://docs.docker.com/engine/install/), [Caddy](https://caddyserver.com/docs/install). Go и Node.js на сервере не нужны: Go-приложение собирается внутри Docker.
+
+Настройте DNS-запись `A` домена, например `akim.example.com`, на IP сервера. Если используете `AAAA`, она также должна вести на этот сервер. Откройте входящие TCP-порты **80 и 443** и сохраните доступ по SSH. Приложение и БД в текущем Compose опубликованы только на localhost: `127.0.0.1:3000` и `127.0.0.1:54329`.
+
+### 2. Скачайте код и настройте окружение
+
+Команды далее выполняются в терминале Linux, в папке с `compose.yaml`:
+
+```sh
+git clone https://github.com/BAITC-Hacks/hack-eb3ba7a0-beknur.git
+cd hack-eb3ba7a0-beknur
+git switch main
+cp -n .env.example .env
+chmod 600 .env
+nano .env
+```
+
+Заполните `.env` реальными значениями вместо примеров:
+
+```dotenv
+POSTGRES_PASSWORD=REPLACE_WITH_RANDOM_HEX_PASSWORD
+ADMIN_PASSWORD=REPLACE_WITH_ANOTHER_STRONG_PASSWORD
+OPENAI_API_KEY=REPLACE_WITH_YOUR_API_KEY
+OPENAI_MODEL=REPLACE_WITH_MODEL_AVAILABLE_TO_YOUR_ACCOUNT
+PUBLIC_ORIGIN=https://akim.example.com
+```
+
+Для генерации каждого пароля можно отдельно выполнить `openssl rand -hex 32`. `PUBLIC_ORIGIN` укажите **без завершающего слеша**. Он нужен для проверки Origin и Secure-cookie за HTTPS-прокси. Ключ и `.env` не добавляйте в Git.
+
+При запуске через Compose адрес `DATABASE_URL` формируется автоматически: PostgreSQL доступен приложению как `db:5432`. Значение `DATABASE_URL` из `.env.example` используется для запуска Go непосредственно на хосте. Порт приложения внутри контейнера фиксирован — `3000`; локальный порт `3001` из примера разработки здесь не используется.
+
+### 3. Добавьте настройки серверного запуска
+
+Создайте рядом с `compose.yaml` файл `compose.production.yaml`:
+
+```yaml
+services:
+  db:
+    restart: unless-stopped
+  app:
+    restart: unless-stopped
+    environment:
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN in .env}
+```
+
+Этот override передаёт `PUBLIC_ORIGIN` внутрь приложения — одного добавления переменной в `.env` недостаточно, поскольку базовый Compose её не передаёт. Файл также задаёт политику перезапуска контейнеров. Подход соответствует [документации Compose для production](https://docs.docker.com/compose/how-tos/production/).
+
+Запустите сервисы:
+
+```sh
+docker compose -f compose.yaml -f compose.production.yaml --profile full up -d --build
+docker compose -f compose.yaml -f compose.production.yaml --profile full ps
+curl --fail http://127.0.0.1:3000/ > /dev/null
+```
+
+При первом запуске сервер создаст таблицы, начальный датасет и аккаунт `admin`. Его пароль берётся из `ADMIN_PASSWORD`. Изменение переменной после создания аккаунта **не меняет существующий пароль**: используйте смену пароля в профиле.
+
+### 4. Подключите HTTPS через Caddy
+
+При установке Caddy как системной службы добавьте в `/etc/caddy/Caddyfile` блок, заменив домен на свой. Существующие блоки других сайтов сохраните:
+
+```caddyfile
+akim.example.com {
+    reverse_proxy 127.0.0.1:3000
+}
+```
+
+```sh
+sudo caddy validate --config /etc/caddy/Caddyfile
+sudo systemctl enable --now caddy
+sudo systemctl reload caddy
+curl --fail https://akim.example.com/ > /dev/null
+```
+
+Caddy получает и обновляет HTTPS-сертификат для домена при корректном DNS и доступных портах 80/443. См. [официальную инструкцию reverse proxy](https://caddyserver.com/docs/quick-starts/reverse-proxy). Прокси должен сохранять исходный заголовок `Host`; приведённая конфигурация подходит и для WebSocket-комнат.
+
+### 5. Проверьте опубликованную игру
+
+Откройте `https://akim.example.com`, зарегистрируйте двух игроков в разных браузерах, создайте комнату и проверьте присоединение, готовность и сдачу пяти решений. Дождитесь AI-анализа, скачайте PDF/DOCX/JSON и проверьте историю. Для AI нужен исходящий HTTPS-доступ сервера к OpenAI и рабочие ключ, модель и квота.
+
+Логи для диагностики:
+
+```sh
+docker compose -f compose.yaml -f compose.production.yaml --profile full logs --tail=100 app db
+sudo journalctl -u caddy -n 100 --no-pager
+```
+
+`502` обычно требует проверки контейнера `app`; ошибка входа по Origin — проверки `PUBLIC_ORIGIN` и домена; ошибка AI — проверки настроек API в логах и интерфейсе. Главная страница сама по себе не подтверждает работу БД или AI: выполните игровой сценарий выше.
+
+### Обновление и сохранность данных
+
+Перед обновлением сделайте дамп БД. Команда ниже рассчитана на Linux shell:
+
+```sh
+mkdir -p backups
+chmod 700 backups
+umask 077
+docker compose exec -T db pg_dump -U akim -d akim -Fc > "backups/akim-$(date +%Y%m%d-%H%M%S).dump"
+```
+
+Храните копии отдельно от сервера и проверяйте восстановление на тестовой БД. PostgreSQL хранит игры и AI-анализ в volume `postgres_data`; локальные файлы приложения — в `app_data`. Не выполняйте `docker compose down -v` для рабочей установки: флаг `-v` удаляет volumes. Пароль PostgreSQL в `.env` относится к первичной инициализации; его замена не меняет пароль уже существующей БД.
+
+Обновление кода с пересборкой только приложения:
+
+```sh
+git pull --ff-only origin main
+docker compose -f compose.yaml -f compose.production.yaml --profile full up -d --build --no-deps app
+docker compose -f compose.yaml -f compose.production.yaml --profile full logs --tail=50 app
+```
+
+Пересоздание контейнера даёт короткий перерыв в работе. Незавершённый AI-анализ после перезапуска можно повторить из сохранённого результата. Сейчас запускайте **один экземпляр приложения**: встроенные AI-задачи и восстановление их состояния не рассчитаны на несколько реплик.
 
 ## Как играть
 
