@@ -1,7 +1,9 @@
 'use strict';
 const http = require('node:http');
 const { readFile } = require('node:fs/promises');
+const { readFileSync } = require('node:fs');
 const path = require('node:path');
+const analysisInstructions = readFileSync(path.join(__dirname, 'prompts', 'scenario-analysis.md'), 'utf8').trim();
 const { validate, compute, base, byId, keys } = require('./dist/city-model.js');
 
 function loadConfig() {
@@ -90,7 +92,7 @@ function createServer({ apiKey, model = 'gpt-6-luna', fetchImpl = fetch, timeout
           headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
           signal: AbortSignal.timeout(timeoutMs),
           body: JSON.stringify({ model, store: false, max_output_tokens: 1800,
-            instructions: 'Ты аналитик учебного симулятора «Аким на 5 часов». Отвечай по-русски обычным текстом до 250 слов: итог, сильные стороны, риски и компромиссы, рекомендации. Используй только переданные расчёты; не считай и не придумывай числа, прогнозы или эффекты альтернативных сценариев. Можно округлять готовые числа до двух знаков. Все показатели направлены одинаково: выше лучше. standaloneScoreDelta — эффект одной меры отдельно; такие дельты нельзя складывать из-за синергий, минимума и порога 40. Рекомендации качественные, требуют отдельного перерасчёта. Сохраняй ровно пять решений и бюджет 100; остаток не даёт бонуса. Данные синтетические, это не официальный прогноз.',
+            instructions: analysisInstructions,
             input: JSON.stringify(facts),
           }),
         });
