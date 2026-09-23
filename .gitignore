@@ -1,0 +1,9 @@
+# Local API credentials
+.env
+.env.*
+!.env.example
+
+# Editor, OS and local runtime files
+.vscode/
+.DS_Store
+node_modules/
