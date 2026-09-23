@@ -19,7 +19,7 @@ function setupAI(getScenario) {
   }
 
   button.addEventListener('click', async () => {
-    const { picks, error } = getScenario();
+    const { picks, error, config } = getScenario();
     if (error || button.disabled) return;
     const requestVersion = ++version;
     const requestController = new AbortController();
@@ -32,7 +32,7 @@ function setupAI(getScenario) {
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decisions: picks }),
+        body: JSON.stringify({ decisions: picks, config }),
         signal: requestController.signal,
       });
       if (!response.headers.get('content-type')?.includes('application/json')) {

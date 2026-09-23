@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { once } = require('node:events');
 const { createServer } = require('../server.cjs');
-const { validate, compute, base } = require('../dist/city-model.js');
+const { validate, compute, base, exampleConfig } = require('../dist/city-model.js');
 const sample = [
   { id: 'M7', district: 'Нура' }, { id: 'M8', district: 'Нура' },
   { id: 'M10', district: 'Нура' }, { id: 'M12' }, { id: 'M5', district: 'Сарыарка' },
@@ -16,7 +16,7 @@ async function serve(t, options = {}) {
   t.after(() => new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }));
   const url = `http://127.0.0.1:${server.address().port}`;
   return { url, post: (body = { decisions: sample }, headers = {}) => fetch(url + '/api/analyze', {
-    method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body),
+    method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({config:exampleConfig,...body}),
   }) };
 }
 
@@ -61,7 +61,7 @@ test('server recomputes facts and never forwards client scores or secrets to the
   for (const route of ['/.env','/.git/config','/server.cjs','/package.json','/%2e%2e/.env']) {
     assert.equal((await fetch(url + route)).status, 404);
   }
-  for (const route of ['/','/city-model.js','/ai-ui.js']) assert.equal((await fetch(url + route)).status, 200);
+  for (const route of ['/','/city-model.js','/ai-ui.js','/optimizer.js','/optimizer-ui.js','/config-ui.js','/app.js','/city-presets.js']) assert.equal((await fetch(url + route)).status, 200);
   assert.equal(calls, 1);
 });
 
@@ -78,7 +78,7 @@ test('invalid inputs and foreign origins do not call OpenAI', async t => {
   });
   assert.equal(hostStatus, 403);
   assert.equal((await post(undefined, { 'Content-Type': 'text/plain' })).status, 415);
-  assert.equal((await post({ padding: 'x'.repeat(17000) })).status, 413);
+  assert.equal((await post({ padding: 'x'.repeat(70000) })).status, 413);
   assert.equal((await fetch(url + '/api/analyze', { method:'POST',headers:{'Content-Type':'application/json'},body:'{' })).status, 400);
 });
 
